@@ -24,6 +24,7 @@ interface RowData {
   FACTURA_DIAN_NORMALIZADA: string;
   FACTURA_HIOPOS_NORMALIZADA: string;
   CUFE_CUDE: string;
+  SERIE_NUMERO: string;
   PROVEEDOR_DIAN: string;
   PROVEEDOR_HIOPOS: string;
   FECHA_DIAN: string;
@@ -186,7 +187,7 @@ export default function App() {
 
       const hCols = {
         suDoc: pickCol(hiopos[0], ["Su Doc", "SU DOC"]),
-        documento: pickCol(hiopos[0], ["Serie / Número", "Serie / Numero", "Serie / NÃºmero"]),
+        serieNumero: pickCol(hiopos[0], ["Serie / Número", "Serie / Numero", "Serie / NÃºmero"]),
         proveedor: pickCol(hiopos[0], ["Contacto"]),
         fecha: pickCol(hiopos[0], ["Fecha Doc"]),
         total: pickCol(hiopos[0], ["Neto"]),
@@ -211,7 +212,7 @@ export default function App() {
 
         const info = {
           factura_hiopos: suDocRaw,
-          documento_hio: hCols.documento ? cleanText(row[hCols.documento]) : "",
+          serie_numero: hCols.serieNumero ? cleanText(row[hCols.serieNumero]) : "",
           proveedor_hiopos: hCols.proveedor ? cleanText(row[hCols.proveedor]) : "",
           fecha_hiopos: hCols.fecha ? formatExcelDate(row[hCols.fecha]) : "",
           total_hiopos: hCols.total ? parseMoney(row[hCols.total]) : 0,
@@ -272,6 +273,7 @@ export default function App() {
           FACTURA_DIAN_NORMALIZADA: keyDian,
           FACTURA_HIOPOS_NORMALIZADA: hi ? normalizeKey(hi.factura_hiopos) : "",
           CUFE_CUDE: d.cufe_cude,
+          SERIE_NUMERO: hi?.serie_numero || "",
           PROVEEDOR_DIAN: d.proveedor_dian,
           PROVEEDOR_HIOPOS: hi?.proveedor_hiopos || "",
           FECHA_DIAN: d.fecha_dian,
@@ -293,6 +295,7 @@ export default function App() {
             FACTURA_DIAN_NORMALIZADA: "",
             FACTURA_HIOPOS_NORMALIZADA: key,
             CUFE_CUDE: "",
+            SERIE_NUMERO: h.serie_numero || "",
             PROVEEDOR_DIAN: "",
             PROVEEDOR_HIOPOS: h.proveedor_hiopos,
             FECHA_DIAN: "",
@@ -388,11 +391,15 @@ export default function App() {
 
     const pendientes = pendientesRows.map(r => ({
       FACTURA: r.FACTURA,
-      FACTURA_DIAN_NORMALIZADA: r.FACTURA_DIAN_NORMALIZADA,
       CUFE_CUDE: r.CUFE_CUDE,
+      SERIE_NUMERO: r.SERIE_NUMERO,
       PROVEEDOR_DIAN: r.PROVEEDOR_DIAN,
+      PROVEEDOR_HIOPOS: r.PROVEEDOR_HIOPOS,
       FECHA_DIAN: r.FECHA_DIAN,
+      FECHA_HIOPOS: r.FECHA_HIOPOS,
       TOTAL_DIAN: r.TOTAL_DIAN,
+      TOTAL_HIOPOS: r.TOTAL_HIOPOS,
+      EN_DIAN: r.EN_DIAN,
       EN_HIOPOS: r.EN_HIOPOS,
       ESTADO: r.ESTADO,
       OBSERVACION: r.OBSERVACION
@@ -411,8 +418,7 @@ export default function App() {
           <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-medium uppercase tracking-wider text-[10px]">
             <tr>
               <th className="px-4 py-3">Factura</th>
-              <th className="px-4 py-3">Factura Normalizada</th>
-              <th className="px-4 py-3">CUFE/CUDE</th>
+              <th className="px-4 py-3">Serie / Número</th>
               <th className="px-4 py-3">Proveedor DIAN</th>
               <th className="px-4 py-3">Proveedor HIOPOS</th>
               <th className="px-4 py-3">Fecha DIAN</th>
@@ -429,8 +435,7 @@ export default function App() {
             {data.map((r, i) => (
               <tr key={i} className="hover:bg-zinc-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-zinc-900">{r.FACTURA}</td>
-                <td className="px-4 py-3 text-zinc-400 font-mono text-[10px]">{r.FACTURA_DIAN_NORMALIZADA || r.FACTURA_HIOPOS_NORMALIZADA}</td>
-                <td className="px-4 py-3 text-zinc-500 truncate max-w-[100px]" title={r.CUFE_CUDE}>{r.CUFE_CUDE}</td>
+                <td className="px-4 py-3 text-zinc-600">{r.SERIE_NUMERO}</td>
                 <td className="px-4 py-3 text-zinc-600">{r.PROVEEDOR_DIAN}</td>
                 <td className="px-4 py-3 text-zinc-600">{r.PROVEEDOR_HIOPOS}</td>
                 <td className="px-4 py-3 text-zinc-500">{r.FECHA_DIAN}</td>
