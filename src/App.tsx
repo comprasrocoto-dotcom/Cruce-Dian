@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   FileSpreadsheet, 
@@ -43,6 +43,7 @@ export default function App() {
   const [hioposNoDianRows, setHioposNoDianRows] = useState<RowData[]>([]);
   const [diferenciasRows, setDiferenciasRows] = useState<RowData[]>([]);
   const [msg, setMsg] = useState<string>("");
+  const [fatalError, setFatalError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'general' | 'pendientes' | 'hioposNoDian' | 'diferencias'>('general');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,6 +119,26 @@ export default function App() {
     return String(val);
   };
 
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+      setFatalError(`Error inesperado: ${event.message}`);
+      console.error("Global Error:", event.error);
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      setFatalError(`Promesa rechazada: ${event.reason?.message || event.reason}`);
+      console.error("Unhandled Rejection:", event.reason);
+    };
+
+    window.addEventListener("error", handleGlobalError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener("error", handleGlobalError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
+  }, []);
+
   const money = (val: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -150,6 +171,7 @@ export default function App() {
 
   const handleCompare = async () => {
     try {
+      setFatalError(null);
       setMsg("Procesando archivos...");
       setLoading(true);
 
@@ -326,9 +348,10 @@ export default function App() {
 
       setMsg("✅ Cruce realizado correctamente.");
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error en handleCompare:", error);
-      setMsg("❌ Ocurrió un error al realizar el cruce. Revisa la consola.");
+      setFatalError(`Error al realizar el cruce: ${error.message || error}`);
+      setMsg("❌ Ocurrió un error al realizar el cruce.");
       setLoading(false);
     }
   };
@@ -520,6 +543,11 @@ export default function App() {
 
         {/* Action Button */}
         <div className="flex flex-col items-center gap-4">
+          {fatalError && (
+            <div className="w-full max-w-md p-4 rounded-lg bg-red-100 border border-red-200 text-red-700 font-semibold text-sm animate-pulse">
+              {fatalError}
+            </div>
+          )}
           <button 
             onClick={handleCompare}
             disabled={loading}
