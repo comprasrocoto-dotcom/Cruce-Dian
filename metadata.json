@@ -1,0 +1,5 @@
+{
+  "name": "Conciliador DIAN vs HIOPOS",
+  "description": "Herramienta para cruzar facturas de la DIAN contra registros de HIOPOS, identificando pendientes y diferencias de valor.",
+  "requestFramePermissions": []
+}
