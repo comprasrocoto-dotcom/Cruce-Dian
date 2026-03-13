@@ -51,7 +51,9 @@ export default function App() {
     totalHiopos: 0,
     coincidencias: 0,
     pendientesDian: 0,
-    pendientesHiopos: 0
+    pendientesHiopos: 0,
+    diferencias: 0,
+    conciliadas: 0
   });
 
   const fileDianRef = useRef<HTMLInputElement>(null);
@@ -134,24 +136,16 @@ export default function App() {
     return null;
   };
 
-  const readExcelSmart = (file: File): Promise<any[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(sheet);
-          resolve(json);
-        } catch (err) {
-          reject(err);
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsBinaryString(file);
-    });
+  const readExcelSmart = async (file: File): Promise<any[]> => {
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      return XLSX.utils.sheet_to_json(ws, { defval: "" });
+    } catch (error) {
+      console.error("Error leyendo Excel:", error);
+      return [];
+    }
   };
 
   const handleCompare = async () => {
@@ -171,8 +165,8 @@ export default function App() {
       const dian = await readExcelSmart(fileDian);
       const hiopos = await readExcelSmart(fileHiopos);
 
-      if (!dian.length || !hiopos.length) {
-        setMsg("⚠️ Uno de los archivos no tiene información.");
+      if (!Array.isArray(dian) || !Array.isArray(hiopos) || !dian.length || !hiopos.length) {
+        setMsg("⚠️ Uno de los archivos no contiene información válida.");
         setLoading(false);
         return;
       }
@@ -194,131 +188,108 @@ export default function App() {
         almacen: pickCol(hiopos[0], ["Almacén", "AlmacÃ©n"])
       };
 
-      if (!dCols.factura || !hCols.suDoc) {
-        setMsg("❌ No se encontró la columna de Factura (DIAN) o Su Doc (HIOPOS).");
+      if (!dCols.factura) {
+        setMsg("❌ No encontré la columna 'Factura' en DIAN.");
         setLoading(false);
         return;
       }
 
-      // 4) Reemplaza la construcción del mapa HIOPOS por esta
+      if (!hCols.suDoc) {
+        setMsg("❌ No encontré la columna 'Su Doc' en HIOPOS.");
+        setLoading(false);
+        return;
+      }
+
+      // HIOPOS: índice SOLO por columna A
       const hiByColA = new Map();
-      const hiRows: any[] = [];
 
       hiopos.forEach((row: any) => {
-        const suDocRaw = cleanText(row[hCols.suDoc!]);
-        const key = normalizeKey(suDocRaw);
-
+        const suDoc = cleanText(row[hCols.suDoc!]);
+        const key = normalizeKey(suDoc);
         if (!key) return;
 
-        const info = {
-          factura_hiopos: suDocRaw,
-          serie_numero: hCols.serieNumero ? cleanText(row[hCols.serieNumero]) : "",
-          proveedor_hiopos: hCols.proveedor ? cleanText(row[hCols.proveedor]) : "",
-          fecha_hiopos: hCols.fecha ? formatExcelDate(row[hCols.fecha]) : "",
-          total_hiopos: hCols.total ? parseMoney(row[hCols.total]) : 0,
-          almacen: hCols.almacen ? cleanText(row[hCols.almacen]) : ""
-        };
-
-        hiRows.push(info);
-
-        // importante: guardar por clave normalizada
         if (!hiByColA.has(key)) {
-          hiByColA.set(key, info);
+          hiByColA.set(key, {
+            FACTURA: suDoc,
+            SERIE_NUMERO: hCols.serieNumero ? cleanText(row[hCols.serieNumero]) : "",
+            PROVEEDOR_HIOPOS: hCols.proveedor ? cleanText(row[hCols.proveedor]) : "",
+            FECHA_HIOPOS: hCols.fecha ? formatExcelDate(row[hCols.fecha]) : "",
+            TOTAL_HIOPOS: hCols.total ? parseMoney(row[hCols.total]) : 0,
+            ALMACEN: hCols.almacen ? cleanText(row[hCols.almacen]) : ""
+          });
         }
       });
 
-      // 5) Reemplaza también la construcción de DIAN por esta
-      const dianRows: any[] = [];
+      // DIAN: recorrido SOLO por columna A
+      const dianRows: RowData[] = dian.map((row: any) => {
+        const factura = cleanText(row[dCols.factura!]);
+        const key = normalizeKey(factura);
 
-      dian.forEach((row: any) => {
-        const facturaRaw = cleanText(row[dCols.factura!]);
-        const key = normalizeKey(facturaRaw);
+        const hi = hiByColA.get(key);
+        const existe = !!hi;
 
-        if (!key) return;
+        const totalDian = dCols.total ? parseMoney(row[dCols.total]) : 0;
+        const totalHiopos = hi?.TOTAL_HIOPOS || 0;
 
-        dianRows.push({
-          factura_dian: facturaRaw,
-          factura_dian_normalizada: key,
-          cufe_cude: dCols.cufe ? cleanText(row[dCols.cufe]) : "",
-          proveedor_dian: dCols.proveedor ? cleanText(row[dCols.proveedor]) : "",
-          fecha_dian: dCols.fecha ? formatExcelDate(row[dCols.fecha]) : "",
-          total_dian: dCols.total ? parseMoney(row[dCols.total]) : 0
-        });
-      });
-
-      // 3) En el cruce A vs A, guarda también los valores normalizados
-      const matchedHiKeys = new Set();
-
-      const rowsFromDian: RowData[] = dianRows.map(d => {
-        const keyDian = d.factura_dian_normalizada;
-        const hi = hiByColA.get(keyDian);
-        const existeEnHiopos = !!hi;
-        if (existeEnHiopos) matchedHiKeys.add(keyDian);
-
-        const totalDian = d.total_dian;
-        const totalHiopos = hi?.total_hiopos || 0;
-
-        let estado = existeEnHiopos ? "INGRESADA" : "PENDIENTE POR INGRESAR";
-        let observacion = existeEnHiopos 
-          ? "Coincide por columna A normalizada" 
+        let estado = existe ? "INGRESADA" : "PENDIENTE POR INGRESAR";
+        let observacion = existe
+          ? "Coincide por columna A"
           : "Está en DIAN y no está en HIOPOS";
 
-        if (existeEnHiopos && Math.abs(totalDian - totalHiopos) > 1) {
+        if (existe && Math.abs(totalDian - totalHiopos) > 1) {
           estado = "DIFERENCIA DE VALOR";
           observacion = "Revisar diferencia entre DIAN y HIOPOS";
         }
 
         return {
-          FACTURA: d.factura_dian,
-          FACTURA_DIAN_NORMALIZADA: keyDian,
-          FACTURA_HIOPOS_NORMALIZADA: hi ? normalizeKey(hi.factura_hiopos) : "",
-          CUFE_CUDE: d.cufe_cude,
-          SERIE_NUMERO: hi?.serie_numero || "",
-          PROVEEDOR_DIAN: d.proveedor_dian,
-          PROVEEDOR_HIOPOS: hi?.proveedor_hiopos || "",
-          FECHA_DIAN: d.fecha_dian,
-          FECHA_HIOPOS: hi?.fecha_hiopos || "",
+          FACTURA: factura,
+          FACTURA_DIAN_NORMALIZADA: key,
+          FACTURA_HIOPOS_NORMALIZADA: hi ? normalizeKey(hi.FACTURA) : "",
+          CUFE_CUDE: dCols.cufe ? cleanText(row[dCols.cufe]) : "",
+          SERIE_NUMERO: hi?.SERIE_NUMERO || "",
+          PROVEEDOR_DIAN: dCols.proveedor ? cleanText(row[dCols.proveedor]) : "",
+          PROVEEDOR_HIOPOS: hi?.PROVEEDOR_HIOPOS || "",
+          FECHA_DIAN: dCols.fecha ? formatExcelDate(row[dCols.fecha]) : "",
+          FECHA_HIOPOS: hi?.FECHA_HIOPOS || "",
           TOTAL_DIAN: totalDian,
           TOTAL_HIOPOS: totalHiopos,
           EN_DIAN: "SI",
-          EN_HIOPOS: existeEnHiopos ? "SI" : "NO",
+          EN_HIOPOS: existe ? "SI" : "NO",
           ESTADO: estado,
           OBSERVACION: observacion
         };
       });
 
-      const rowsFromHioposOnly: RowData[] = [];
-      hiByColA.forEach((h, key) => {
-        if (!matchedHiKeys.has(key)) {
-          rowsFromHioposOnly.push({
-            FACTURA: h.factura_hiopos,
-            FACTURA_DIAN_NORMALIZADA: "",
-            FACTURA_HIOPOS_NORMALIZADA: key,
-            CUFE_CUDE: "",
-            SERIE_NUMERO: h.serie_numero || "",
-            PROVEEDOR_DIAN: "",
-            PROVEEDOR_HIOPOS: h.proveedor_hiopos,
-            FECHA_DIAN: "",
-            FECHA_HIOPOS: h.fecha_hiopos,
-            TOTAL_DIAN: 0,
-            TOTAL_HIOPOS: h.total_hiopos,
-            EN_DIAN: "NO",
-            EN_HIOPOS: "SI",
-            ESTADO: "INGRESADA EN HIOPOS Y NO REGISTRADA EN DIAN",
-            OBSERVACION: "Está en HIOPOS y no está en DIAN"
-          });
-        }
-      });
+      const dianKeys = new Set(dianRows.map(r => r.FACTURA_DIAN_NORMALIZADA).filter(Boolean));
 
-      const rows = [...rowsFromDian, ...rowsFromHioposOnly];
+      const hioposOnlyRows: RowData[] = [...hiByColA.values()]
+        .filter(h => !dianKeys.has(normalizeKey(h.FACTURA)))
+        .map(h => ({
+          FACTURA: h.FACTURA,
+          FACTURA_DIAN_NORMALIZADA: "",
+          FACTURA_HIOPOS_NORMALIZADA: normalizeKey(h.FACTURA),
+          CUFE_CUDE: "",
+          SERIE_NUMERO: h.SERIE_NUMERO,
+          PROVEEDOR_DIAN: "",
+          PROVEEDOR_HIOPOS: h.PROVEEDOR_HIOPOS,
+          FECHA_DIAN: "",
+          FECHA_HIOPOS: h.FECHA_HIOPOS,
+          TOTAL_DIAN: 0,
+          TOTAL_HIOPOS: h.TOTAL_HIOPOS,
+          EN_DIAN: "NO",
+          EN_HIOPOS: "SI",
+          ESTADO: "INGRESADA EN HIOPOS Y NO REGISTRADA EN DIAN",
+          OBSERVACION: "Está en HIOPOS y no está en DIAN"
+        }));
+
+      const rows = [...dianRows, ...hioposOnlyRows];
 
       // Validación de control
-      const dianKeysSet = new Set(dianRows.map(r => r.factura_dian_normalizada).filter(Boolean));
       const hiKeysSet = new Set(Array.from(hiByColA.keys()).filter(Boolean));
-      const coincidencias = [...dianKeysSet].filter(k => hiKeysSet.has(k));
+      const coincidencias = [...dianKeys].filter(k => hiKeysSet.has(k));
 
       if (coincidencias.length === 0) {
-        setMsg("⚠️ Los archivos cargados no tienen coincidencias entre DIAN columna A (Factura) y HIOPOS columna A (Su Doc). Revisa si corresponden al mismo periodo, sede o tipo de documento.");
+        setMsg("⚠️ Los archivos cargados no tienen coincidencias entre DIAN (Factura) y HIOPOS (Su Doc).");
         setGeneralRows([]);
         setPendientesRows([]);
         setHioposNoDianRows([]);
@@ -334,11 +305,11 @@ export default function App() {
         return;
       }
 
-      setGeneralRows(rows);
       const pRows = rows.filter(r => r.ESTADO === "PENDIENTE POR INGRESAR");
       const hndRows = rows.filter(r => r.ESTADO === "INGRESADA EN HIOPOS Y NO REGISTRADA EN DIAN");
       const dRows = rows.filter(r => r.ESTADO === "DIFERENCIA DE VALOR");
 
+      setGeneralRows(rows);
       setPendientesRows(pRows);
       setHioposNoDianRows(hndRows);
       setDiferenciasRows(dRows);
@@ -348,14 +319,16 @@ export default function App() {
         totalHiopos: hiByColA.size,
         coincidencias: coincidencias.length,
         pendientesDian: pRows.length,
-        pendientesHiopos: hndRows.length
+        pendientesHiopos: hndRows.length,
+        diferencias: dRows.length,
+        conciliadas: rows.filter(r => r.ESTADO === "INGRESADA").length
       });
 
       setMsg("✅ Cruce realizado correctamente.");
       setLoading(false);
     } catch (error) {
-      console.error(error);
-      setMsg("❌ Error procesando archivos.");
+      console.error("Error en handleCompare:", error);
+      setMsg("❌ Ocurrió un error al realizar el cruce. Revisa la consola.");
       setLoading(false);
     }
   };
@@ -592,28 +565,36 @@ export default function App() {
 
         {/* Stats Summary */}
         {(summary.totalDian > 0 || summary.totalHiopos > 0) && (
-          <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Total DIAN</p>
-              <p className="text-3xl font-serif italic">{summary.totalDian}</p>
+              <p className="text-2xl font-serif italic">{summary.totalDian}</p>
             </div>
             <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Total HIOPOS</p>
-              <p className="text-3xl font-serif italic">{summary.totalHiopos}</p>
+              <p className="text-2xl font-serif italic">{summary.totalHiopos}</p>
             </div>
             <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-hiopos-blue mb-1">Coincidencias</p>
-              <p className={`text-3xl font-serif italic ${summary.coincidencias === 0 ? 'text-hiopos-pending' : 'text-hiopos-ok'}`}>
+              <p className={`text-2xl font-serif italic ${summary.coincidencias === 0 ? 'text-hiopos-pending' : 'text-hiopos-ok'}`}>
                 {summary.coincidencias}
               </p>
             </div>
             <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-hiopos-ok mb-1 opacity-70">Conciliadas</p>
+              <p className="text-2xl font-serif italic text-hiopos-ok">{summary.conciliadas}</p>
+            </div>
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-hiopos-pending mb-1 opacity-70">Pend. DIAN</p>
-              <p className="text-3xl font-serif italic text-hiopos-pending">{summary.pendientesDian}</p>
+              <p className="text-2xl font-serif italic text-hiopos-pending">{summary.pendientesDian}</p>
             </div>
             <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-amber-500 mb-1 opacity-70">Pend. HIOPOS</p>
-              <p className="text-3xl font-serif italic text-amber-500">{summary.pendientesHiopos}</p>
+              <p className="text-2xl font-serif italic text-amber-500">{summary.pendientesHiopos}</p>
+            </div>
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-rose-600 mb-1 opacity-70">Diferencias</p>
+              <p className="text-2xl font-serif italic text-rose-600">{summary.diferencias}</p>
             </div>
           </section>
         )}
