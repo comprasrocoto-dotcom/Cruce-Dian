@@ -398,35 +398,22 @@ export default function App() {
               <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Fecha HIOPOS</th>
               <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Total DIAN</th>
               <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Total HIOPOS</th>
-              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">DIAN</th>
-              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">HIOPOS</th>
               <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Estado</th>
-              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Observación</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-hiopos-table-border">
             {data.map((r, i) => (
               <tr key={i} className="hover:bg-hiopos-table-hover transition-colors">
                 <td className="p-2.5 text-[13px] font-medium">{r.FACTURA}</td>
-                <td className="p-2.5 text-[13px]">{r.SERIE_NUMERO}</td>
-                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_DIAN}</td>
-                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_HIOPOS}</td>
-                <td className="p-2.5 text-[13px]">{r.FECHA_DIAN}</td>
-                <td className="p-2.5 text-[13px]">{r.FECHA_HIOPOS}</td>
-                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_DIAN)}</td>
-                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_HIOPOS)}</td>
-                <td className="p-2.5 text-center">
-                  <span className={`px-2 py-1 rounded-full text-[12px] font-bold ${r.EN_DIAN === 'SI' ? 'bg-hiopos-tag-si-bg text-hiopos-tag-si-text' : 'bg-hiopos-tag-no-bg text-hiopos-tag-no-text'}`}>
-                    {r.EN_DIAN}
-                  </span>
-                </td>
-                <td className="p-2.5 text-center">
-                  <span className={`px-2 py-1 rounded-full text-[12px] font-bold ${r.EN_HIOPOS === 'SI' ? 'bg-hiopos-tag-si-bg text-hiopos-tag-si-text' : 'bg-hiopos-tag-no-bg text-hiopos-tag-no-text'}`}>
-                    {r.EN_HIOPOS}
-                  </span>
-                </td>
+                <td className="p-2.5 text-[13px]">{r.SERIE_NUMERO || ""}</td>
+                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_DIAN || ""}</td>
+                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_HIOPOS || ""}</td>
+                <td className="p-2.5 text-[13px]">{r.FECHA_DIAN || ""}</td>
+                <td className="p-2.5 text-[13px]">{r.FECHA_HIOPOS || ""}</td>
+                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_DIAN || 0)}</td>
+                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_HIOPOS || 0)}</td>
                 <td className="p-2.5">
-                  <span className={`px-2 py-1 rounded text-[12px] font-semibold text-white ${
+                  <span className={`px-2 py-1 rounded text-[12px] font-semibold text-white inline-block min-w-[100px] text-center ${
                     r.ESTADO === 'INGRESADA' ? 'bg-hiopos-ok' : 
                     r.ESTADO === 'DIFERENCIA DE VALOR' ? 'bg-amber-500' :
                     'bg-hiopos-pending'
@@ -434,12 +421,11 @@ export default function App() {
                     {r.ESTADO}
                   </span>
                 </td>
-                <td className="p-2.5 text-zinc-500 italic text-xs">{r.OBSERVACION}</td>
               </tr>
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={12} className="p-10 text-center text-zinc-400 italic">
+                <td colSpan={9} className="p-10 text-center text-zinc-400 italic">
                   No hay datos para mostrar
                 </td>
               </tr>
