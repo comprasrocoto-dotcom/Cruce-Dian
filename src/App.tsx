@@ -413,60 +413,60 @@ export default function App() {
 
   const renderTable = (data: RowData[]) => {
     return (
-      <div className="overflow-x-auto border border-zinc-200 rounded-xl bg-white shadow-sm">
-        <table className="w-full text-sm text-left border-collapse">
-          <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-medium uppercase tracking-wider text-[10px]">
+      <div className="overflow-x-auto bg-white rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+        <table className="w-full border-collapse">
+          <thead className="bg-hiopos-blue-light">
             <tr>
-              <th className="px-4 py-3">Factura</th>
-              <th className="px-4 py-3">Serie / Número</th>
-              <th className="px-4 py-3">Proveedor DIAN</th>
-              <th className="px-4 py-3">Proveedor HIOPOS</th>
-              <th className="px-4 py-3">Fecha DIAN</th>
-              <th className="px-4 py-3">Fecha HIOPOS</th>
-              <th className="px-4 py-3">Total DIAN</th>
-              <th className="px-4 py-3">Total HIOPOS</th>
-              <th className="px-4 py-3">DIAN</th>
-              <th className="px-4 py-3">HIOPOS</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3">Observación</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Factura</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Serie / Número</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Proveedor DIAN</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Proveedor HIOPOS</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Fecha DIAN</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Fecha HIOPOS</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Total DIAN</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Total HIOPOS</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">DIAN</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">HIOPOS</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Estado</th>
+              <th className="p-2.5 text-[13px] text-hiopos-blue text-left font-semibold">Observación</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-hiopos-table-border">
             {data.map((r, i) => (
-              <tr key={i} className="hover:bg-zinc-50 transition-colors">
-                <td className="px-4 py-3 font-medium text-zinc-900">{r.FACTURA}</td>
-                <td className="px-4 py-3 text-zinc-600">{r.SERIE_NUMERO}</td>
-                <td className="px-4 py-3 text-zinc-600">{r.PROVEEDOR_DIAN}</td>
-                <td className="px-4 py-3 text-zinc-600">{r.PROVEEDOR_HIOPOS}</td>
-                <td className="px-4 py-3 text-zinc-500">{r.FECHA_DIAN}</td>
-                <td className="px-4 py-3 text-zinc-500">{r.FECHA_HIOPOS}</td>
-                <td className="px-4 py-3 font-mono text-right">{money(r.TOTAL_DIAN)}</td>
-                <td className="px-4 py-3 font-mono text-right">{money(r.TOTAL_HIOPOS)}</td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${r.EN_DIAN === 'SI' ? 'bg-emerald-100 text-emerald-700' : 'bg-zinc-100 text-zinc-400'}`}>
+              <tr key={i} className="hover:bg-hiopos-table-hover transition-colors">
+                <td className="p-2.5 text-[13px] font-medium">{r.FACTURA}</td>
+                <td className="p-2.5 text-[13px]">{r.SERIE_NUMERO}</td>
+                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_DIAN}</td>
+                <td className="p-2.5 text-[13px]">{r.PROVEEDOR_HIOPOS}</td>
+                <td className="p-2.5 text-[13px]">{r.FECHA_DIAN}</td>
+                <td className="p-2.5 text-[13px]">{r.FECHA_HIOPOS}</td>
+                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_DIAN)}</td>
+                <td className="p-2.5 text-[13px] font-mono text-right">{money(r.TOTAL_HIOPOS)}</td>
+                <td className="p-2.5 text-center">
+                  <span className={`px-2 py-1 rounded-full text-[12px] font-bold ${r.EN_DIAN === 'SI' ? 'bg-hiopos-tag-si-bg text-hiopos-tag-si-text' : 'bg-hiopos-tag-no-bg text-hiopos-tag-no-text'}`}>
                     {r.EN_DIAN}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${r.EN_HIOPOS === 'SI' ? 'bg-emerald-100 text-emerald-700' : 'bg-zinc-100 text-zinc-400'}`}>
+                <td className="p-2.5 text-center">
+                  <span className={`px-2 py-1 rounded-full text-[12px] font-bold ${r.EN_HIOPOS === 'SI' ? 'bg-hiopos-tag-si-bg text-hiopos-tag-si-text' : 'bg-hiopos-tag-no-bg text-hiopos-tag-no-text'}`}>
                     {r.EN_HIOPOS}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded text-[11px] font-semibold ${
-                    r.ESTADO === 'INGRESADA' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 
-                    r.ESTADO === 'DIFERENCIA DE VALOR' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                    'bg-rose-50 text-rose-700 border border-rose-100'
+                <td className="p-2.5">
+                  <span className={`px-2 py-1 rounded text-[12px] font-semibold text-white ${
+                    r.ESTADO === 'INGRESADA' ? 'bg-hiopos-ok' : 
+                    r.ESTADO === 'DIFERENCIA DE VALOR' ? 'bg-amber-500' :
+                    'bg-hiopos-pending'
                   }`}>
                     {r.ESTADO}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-zinc-500 italic text-xs">{r.OBSERVACION}</td>
+                <td className="p-2.5 text-zinc-500 italic text-xs">{r.OBSERVACION}</td>
               </tr>
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={12} className="px-4 py-12 text-center text-zinc-400 italic">
+                <td colSpan={12} className="p-10 text-center text-zinc-400 italic">
                   No hay datos para mostrar
                 </td>
               </tr>
@@ -478,18 +478,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F8] text-zinc-900 font-sans p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-hiopos-bg text-hiopos-text font-sans">
+      {/* Topbar */}
+      <div className="bg-hiopos-blue text-white p-3 font-semibold shadow-md flex items-center gap-3">
+        <ArrowRightLeft size={20} />
+        <span>Conciliación Fiscal DIAN vs HIOPOS</span>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
         
-        {/* Header */}
+        {/* Header Actions */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-200 pb-8">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-emerald-600 font-mono text-xs uppercase tracking-widest font-bold">
-              <ArrowRightLeft size={14} />
-              <span>Conciliación Fiscal</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-serif italic font-light tracking-tight">
-              DIAN <span className="text-zinc-400 font-sans not-italic text-2xl mx-2">vs</span> HIOPOS
+            <h1 className="text-4xl md:text-5xl font-serif italic font-light tracking-tight text-hiopos-blue">
+              Conciliador <span className="text-zinc-400 font-sans not-italic text-2xl mx-2">Rocoto</span>
             </h1>
             <p className="text-zinc-500 max-w-md text-sm">
               Cruce inteligente de facturación electrónica y registros de punto de venta.
@@ -500,17 +502,17 @@ export default function App() {
             <button 
               onClick={handleDownloadAll}
               disabled={generalRows.length === 0}
-              className="flex items-center gap-2 bg-zinc-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-zinc-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-zinc-200"
+              className="bg-hiopos-blue text-white px-3.5 py-2 rounded font-medium text-[13px] hover:bg-hiopos-blue-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
-              <Download size={16} />
+              <Download size={14} className="inline mr-2" />
               Descargar Todo
             </button>
             <button 
               onClick={handleDownloadPendientes}
               disabled={pendientesRows.length === 0}
-              className="flex items-center gap-2 border border-zinc-200 bg-white text-zinc-700 px-5 py-2.5 rounded-full text-sm font-medium hover:bg-zinc-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-hiopos-blue text-white px-3.5 py-2 rounded font-medium text-[13px] hover:bg-hiopos-blue-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
-              <Clock size={16} />
+              <Clock size={14} className="inline mr-2" />
               Solo Pendientes
             </button>
           </div>
@@ -518,9 +520,9 @@ export default function App() {
 
         {/* Upload Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)] space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <div className="w-10 h-10 rounded-full bg-hiopos-blue-light flex items-center justify-center text-hiopos-blue">
                 <FileSpreadsheet size={20} />
               </div>
               <div>
@@ -529,17 +531,17 @@ export default function App() {
               </div>
             </div>
             <label className="block w-full cursor-pointer group">
-              <div className="border-2 border-dashed border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center gap-2 group-hover:border-emerald-300 group-hover:bg-emerald-50/30 transition-all">
-                <Upload size={24} className="text-zinc-300 group-hover:text-emerald-400 transition-colors" />
-                <span className="text-sm text-zinc-500 group-hover:text-emerald-600">Seleccionar archivo</span>
+              <div className="border-2 border-dashed border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center gap-2 group-hover:border-hiopos-blue group-hover:bg-hiopos-blue-light/30 transition-all">
+                <Upload size={24} className="text-zinc-300 group-hover:text-hiopos-blue transition-colors" />
+                <span className="text-sm text-zinc-500 group-hover:text-hiopos-blue">Seleccionar archivo</span>
                 <input type="file" ref={fileDianRef} accept=".xlsx,.xls" className="hidden" />
               </div>
             </label>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)] space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+              <div className="w-10 h-10 rounded-full bg-hiopos-blue-light flex items-center justify-center text-hiopos-blue">
                 <FileSpreadsheet size={20} />
               </div>
               <div>
@@ -548,9 +550,9 @@ export default function App() {
               </div>
             </div>
             <label className="block w-full cursor-pointer group">
-              <div className="border-2 border-dashed border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center gap-2 group-hover:border-blue-300 group-hover:bg-blue-50/30 transition-all">
-                <Upload size={24} className="text-zinc-300 group-hover:text-blue-400 transition-colors" />
-                <span className="text-sm text-zinc-500 group-hover:text-blue-600">Seleccionar archivo</span>
+              <div className="border-2 border-dashed border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center gap-2 group-hover:border-hiopos-blue group-hover:bg-hiopos-blue-light/30 transition-all">
+                <Upload size={24} className="text-zinc-300 group-hover:text-hiopos-blue transition-colors" />
+                <span className="text-sm text-zinc-500 group-hover:text-hiopos-blue">Seleccionar archivo</span>
                 <input type="file" ref={fileHioposRef} accept=".xlsx,.xls" className="hidden" />
               </div>
             </label>
@@ -562,7 +564,7 @@ export default function App() {
           <button 
             onClick={handleCompare}
             disabled={loading}
-            className="w-full max-w-md bg-emerald-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center justify-center gap-3 disabled:opacity-70"
+            className="w-full max-w-md bg-hiopos-blue text-white py-4 rounded font-bold text-lg hover:bg-hiopos-blue-hover transition-all shadow-xl shadow-hiopos-blue/20 flex items-center justify-center gap-3 disabled:opacity-70"
           >
             {loading ? (
               <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -591,27 +593,27 @@ export default function App() {
         {/* Stats Summary */}
         {(summary.totalDian > 0 || summary.totalHiopos > 0) && (
           <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Total DIAN</p>
               <p className="text-3xl font-serif italic">{summary.totalDian}</p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
               <p className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Total HIOPOS</p>
               <p className="text-3xl font-serif italic">{summary.totalHiopos}</p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-400 mb-1">Coincidencias</p>
-              <p className={`text-3xl font-serif italic ${summary.coincidencias === 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-hiopos-blue mb-1">Coincidencias</p>
+              <p className={`text-3xl font-serif italic ${summary.coincidencias === 0 ? 'text-hiopos-pending' : 'text-hiopos-ok'}`}>
                 {summary.coincidencias}
               </p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-rose-400 mb-1">Pend. DIAN</p>
-              <p className="text-3xl font-serif italic text-rose-600">{summary.pendientesDian}</p>
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-hiopos-pending mb-1 opacity-70">Pend. DIAN</p>
+              <p className="text-3xl font-serif italic text-hiopos-pending">{summary.pendientesDian}</p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-amber-400 mb-1">Pend. HIOPOS</p>
-              <p className="text-3xl font-serif italic text-amber-600">{summary.pendientesHiopos}</p>
+            <div className="bg-white p-4 rounded shadow-[0_1px_3px_rgba(0,0,0,0.15)]">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-amber-500 mb-1 opacity-70">Pend. HIOPOS</p>
+              <p className="text-3xl font-serif italic text-amber-500">{summary.pendientesHiopos}</p>
             </div>
           </section>
         )}
@@ -620,45 +622,41 @@ export default function App() {
         {generalRows.length > 0 && (
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex border-b border-zinc-200 overflow-x-auto no-scrollbar flex-1">
+              <div className="flex bg-hiopos-blue-tab p-1 rounded border border-hiopos-blue-border overflow-x-auto no-scrollbar">
                 <button 
                   onClick={() => setActiveTab('general')}
-                  className={`px-6 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === 'general' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+                  className={`px-6 py-2 text-[13px] font-medium transition-all rounded ${activeTab === 'general' ? 'bg-hiopos-blue text-white' : 'text-hiopos-blue hover:bg-hiopos-blue-light'}`}
                 >
                   General
-                  {activeTab === 'general' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
                 </button>
                 <button 
                   onClick={() => setActiveTab('pendientes')}
-                  className={`px-6 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === 'pendientes' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+                  className={`px-6 py-2 text-[13px] font-medium transition-all rounded ${activeTab === 'pendientes' ? 'bg-hiopos-blue text-white' : 'text-hiopos-blue hover:bg-hiopos-blue-light'}`}
                 >
                   Pendientes ({pendientesRows.length})
-                  {activeTab === 'pendientes' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
                 </button>
                 <button 
                   onClick={() => setActiveTab('hioposNoDian')}
-                  className={`px-6 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === 'hioposNoDian' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+                  className={`px-6 py-2 text-[13px] font-medium transition-all rounded ${activeTab === 'hioposNoDian' ? 'bg-hiopos-blue text-white' : 'text-hiopos-blue hover:bg-hiopos-blue-light'}`}
                 >
                   HIOPOS no DIAN ({hioposNoDianRows.length})
-                  {activeTab === 'hioposNoDian' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
                 </button>
                 <button 
                   onClick={() => setActiveTab('diferencias')}
-                  className={`px-6 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === 'diferencias' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+                  className={`px-6 py-2 text-[13px] font-medium transition-all rounded ${activeTab === 'diferencias' ? 'bg-hiopos-blue text-white' : 'text-hiopos-blue hover:bg-hiopos-blue-light'}`}
                 >
                   Diferencias ({diferenciasRows.length})
-                  {activeTab === 'diferencias' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
                 </button>
               </div>
 
               <div className="relative w-full md:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-hiopos-blue" size={16} />
                 <input 
                   type="text"
                   placeholder="Buscar factura o proveedor..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-zinc-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-hiopos-blue-border rounded text-[13px] focus:outline-none focus:ring-2 focus:ring-hiopos-blue/20 focus:border-hiopos-blue transition-all"
                 />
               </div>
             </div>
