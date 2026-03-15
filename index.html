@@ -491,6 +491,34 @@
       return s.trim();
     }
 
+    function normalizeProvider(value) {
+      if (value === null || value === undefined) return "";
+      let s = String(value)
+        .replace(/\u00A0/g, " ")
+        .replace(/\u2007/g, " ")
+        .replace(/\u202F/g, " ")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .replace(/\s+/g, " ")
+        .replace(/[^A-Z0-9 ]/g, "")
+        .trim();
+      return s;
+    }
+
+    function providerExistsInHiopos(providerDian, hioposProviders) {
+      const p = normalizeProvider(providerDian);
+      if (!p) return false;
+      if (hioposProviders.has(p)) return true;
+      for (const hp of hioposProviders) {
+        if (hp.includes(p) || p.includes(hp)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function normHeader(s){
       return String(s || "")
         .replace(/\u00A0/g, " ")
@@ -691,13 +719,12 @@
         if (!hCols.suDoc) throw new Error("No se encontró la columna Su Doc en HIOPOS.");
 
         const hiByColA = new Map();
+        const hioposProviders = new Set();
 
         hiopos.forEach(row => {
           const suDoc = cleanText(row[hCols.suDoc]);
           const key = normalizeKey(suDoc);
-          if (!key) return;
-
-          if (!hiByColA.has(key)) {
+          if (key && !hiByColA.has(key)) {
             hiByColA.set(key, {
               FACTURA: suDoc,
               SERIE_NUMERO: hCols.serieNumero ? cleanText(row[hCols.serieNumero]) : "",
@@ -706,27 +733,37 @@
               TOTAL_HIOPOS: hCols.total ? parseMoney(row[hCols.total]) : 0
             });
           }
+          const provider = hCols.proveedor ? normalizeProvider(row[hCols.proveedor]) : "";
+          if (provider) hioposProviders.add(provider);
         });
 
-        generalRows = dian.map(row => {
-          const factura = cleanText(row[dCols.factura]);
-          const key = normalizeKey(factura);
-          const hi = hiByColA.get(key);
-          const existe = !!hi;
+        generalRows = dian
+          .filter(row => {
+            const providerDian = dCols.proveedor ? row[dCols.proveedor] : "";
+            return providerExistsInHiopos(providerDian, hioposProviders);
+          })
+          .map(row => {
+            const factura = cleanText(row[dCols.factura]);
+            const key = normalizeKey(factura);
+            const hi = hiByColA.get(key);
+            const existe = !!hi;
 
-          return {
-            FACTURA: factura,
-            CUFE_CUDE: dCols.cufe ? cleanText(row[dCols.cufe]) : "",
-            SERIE_NUMERO: hi?.SERIE_NUMERO || "",
-            PROVEEDOR_DIAN: dCols.proveedor ? cleanText(row[dCols.proveedor]) : "",
-            PROVEEDOR_HIOPOS: hi?.PROVEEDOR_HIOPOS || "",
-            FECHA_DIAN: dCols.fecha ? formatExcelDate(row[dCols.fecha]) : "",
-            FECHA_HIOPOS: hi?.FECHA_HIOPOS || "",
-            TOTAL_DIAN: dCols.total ? parseMoney(row[dCols.total]) : 0,
-            TOTAL_HIOPOS: hi?.TOTAL_HIOPOS || 0,
-            ESTADO: existe ? "INGRESADA" : "PENDIENTE POR INGRESAR"
-          };
-        });
+            return {
+              FACTURA: factura,
+              CUFE_CUDE: dCols.cufe ? cleanText(row[dCols.cufe]) : "",
+              SERIE_NUMERO: hi?.SERIE_NUMERO || "",
+              PROVEEDOR_DIAN: dCols.proveedor ? cleanText(row[dCols.proveedor]) : "",
+              PROVEEDOR_HIOPOS: hi?.PROVEEDOR_HIOPOS || "",
+              FECHA_DIAN: dCols.fecha ? formatExcelDate(row[dCols.fecha]) : "",
+              FECHA_HIOPOS: hi?.FECHA_HIOPOS || "",
+              TOTAL_DIAN: dCols.total ? parseMoney(row[dCols.total]) : 0,
+              TOTAL_HIOPOS: hi?.TOTAL_HIOPOS || 0,
+              ESTADO: existe ? "INGRESADA" : "PENDIENTE POR INGRESAR",
+              OBSERVACION: existe
+                ? "Proveedor válido en HIOPOS y factura ingresada"
+                : "Proveedor válido en HIOPOS, pero factura no ingresada"
+            };
+          });
 
         pendientesRows = generalRows.filter(r => r.ESTADO === "PENDIENTE POR INGRESAR");
 
@@ -776,7 +813,8 @@
           FECHA_HIOPOS: r.FECHA_HIOPOS,
           TOTAL_DIAN: r.TOTAL_DIAN,
           TOTAL_HIOPOS: r.TOTAL_HIOPOS,
-          ESTADO: r.ESTADO
+          ESTADO: r.ESTADO,
+          OBSERVACION: r.OBSERVACION
         }));
 
         const wb = XLSX.utils.book_new();
